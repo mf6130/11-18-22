@@ -1,0 +1,58 @@
+### StatQuest: PCA in R
+
+## Install packages
+install.packages("ggplot2")
+
+### Create Dataset (10 samples of mice, 100 genes per sample) where the 
+### first five samples are wt (wildtype) and the last five samples are ko
+### (knock out). Genes are named 1 through 100.
+
+data.matrix <- matrix(nrow=100, ncol=10)
+colnames(data.matrix) <- c(
+  paste("wt", 1:5, sep=""),
+  paste("ko", 1:5, sep=""))
+rownames(data.matrix) <- paste("gene", 1:100, sep="")
+for (i in 1:100) {
+  wt.values <- rpois(5, lambda=sample(x=10:1000, size=1))
+  ko.values <- rpois(5, lambda=sample(x=10:1000, size=1))
+  
+  data.matrix[i,] <- c(wt.values, ko.values)
+}
+head(data.matrix)
+
+### PCA Analysis
+
+pca = prcomp(t(data.matrix), scale=TRUE) #data needed to be transposed t()
+
+plot(pca$x[,1], pca$x[,2]) #plots the first two principle components (PC)
+
+pca.var = pca$sdev^2 #how much variation each PC accounts for
+pca.var.per = round(pca.var/sum(pca.var)*100,1) #in percent
+barplot(pca.var.per, main="Scree Plot", xlab="Principal Component", ylab="Percent Variation")
+
+library(ggplot2)
+
+pca.data = data.frame(Sample=rownames(pca$x), #reformatting data for ggplot
+                      X=pca$x[,1],
+                      Y=pca$x[,2])
+pca.data
+
+ggplot(data=pca.data, aes(x=X, y=Y, label=Sample)) + #define X, Y, labels
+  geom_text() + #plot the labels
+  xlab(paste("PC1 -", pca.var.per[1], "%", sep="")) +  #X and Y axis labels
+  ylab(paste("PC2 -", pca.var.per[2], "%", sep="")) + 
+  theme_bw() + #white background
+  ggtitle("My PCA Graph") #add title
+
+loading_scores = pca$rotation[,1]  
+
+gene_scores = abs(loading_scores)
+
+gene_score_ranked = sort(gene_scores, decreasing = TRUE)
+
+top_10_genes = names(gene_score_ranked[1:10])
+
+top_10_genes #top 10 genes with the largest loading score magnitudes
+
+pca$rotation[top_10_genes,1] #shows the scores (w/ sign) positive loading scores
+# push samples to the right of the graph
