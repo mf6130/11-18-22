@@ -3,6 +3,9 @@
 ### first five samples are wt (wildtype) and the last five samples are ko
 ### (knock out). Genes are named 1 through 100.
 
+## Install packages
+install.packages("ggplot2")
+
 data.matrix <- matrix(nrow=100, ncol=10)
 colnames(data.matrix) <- c(
   paste("wt", 1:5, sep=""),
